@@ -2,6 +2,8 @@
 const chatMessages = document.getElementById('chat-messages');
 const messageInput = document.getElementById('message-input');
 const sendButton = document.getElementById('send-button');
+const newChatButton = document.getElementById('new-chat');
+const loginButton = document.getElementById('login-button');
 
 // Historial de la conversación para mantener el contexto
 // Incluimos un mensaje inicial del sistema para definir la personalidad de Gatito Sentimental
@@ -14,6 +16,52 @@ let history = [
     // Aunque no está en el historial 'real' del modelo, inicia la conversación en la UI.
     // La primera interacción del usuario con Gatito Sentimental definirá el primer 'user' en history.
 ];
+
+// Guardar el historial en la base de datos
+async function saveHistory() {
+    try {
+        if (!puter.auth.isSignedIn || !puter.auth.isSignedIn()) {
+            await puter.auth.signIn();
+        }
+        await puter.kv.set('chatHistory', JSON.stringify(history));
+        console.log('Historial guardado exitosamente');
+    } catch (e) {
+        console.error('Error al guardar historial', e);
+    }
+}
+
+// Cargar historial almacenado
+async function loadHistory() {
+    try {
+        if (!puter.auth.isSignedIn || !puter.auth.isSignedIn()) {
+            await puter.auth.signIn();
+        }
+        const data = await puter.kv.get('chatHistory');
+        if (data) {
+            history = JSON.parse(data);
+            for (const msg of history) {
+                if (msg.role === 'user') addMessageToUI(msg.content, 'user');
+                if (msg.role === 'assistant') addMessageToUI(msg.content, 'bot');
+            }
+        }
+    } catch (e) {
+        console.error('Error al leer historial', e);
+    }
+}
+
+// Comprobar estado de inicio de sesión y mostrar/ocultar botón
+async function updateLoginState() {
+    try {
+        const signedIn = typeof puter.auth.isSignedIn === 'function' && puter.auth.isSignedIn();
+        if (signedIn) {
+            loginButton.style.display = 'none';
+        } else {
+            loginButton.style.display = 'block';
+        }
+    } catch {
+        loginButton.style.display = 'block';
+    }
+}
 
 // Función para añadir un mensaje al chat en la UI
 function addMessageToUI(text, sender = 'user') {
@@ -40,10 +88,7 @@ function addMessageToUI(text, sender = 'user') {
     chatMessages.scrollTop = chatMessages.scrollHeight;
 }
 
-// Mostrar el mensaje de bienvenida inicial de Gatito Sentimental al cargar la página
-document.addEventListener('DOMContentLoaded', () => {
-    addMessageToUI('¡Hola! Soy Gatito Sentimental. Estoy aquí para escucharte y ofrecerte un poco de apoyo. ¿Cómo te sientes hoy?', 'bot');
-});
+
 
 
 // Función para enviar el mensaje y obtener respuesta de Gemini
@@ -56,6 +101,7 @@ async function sendMessage() {
 
     // Añadir el mensaje del usuario al historial para el contexto de la IA
     history.push({ role: "user", content: userMessage });
+    await saveHistory();
 
     // Deshabilitar input y botón mientras se espera la respuesta
     messageInput.disabled = true;
@@ -84,7 +130,7 @@ async function sendMessage() {
                     const messageContainer = document.createElement('div');
                     messageContainer.classList.add('flex', 'mb-2', 'justify-start');
                     botMessageDiv = document.createElement('div');
-                    botMessageDiv.classList.add('bg-gray-700', 'text-gray-100', 'p-3', 'rounded-lg', 'max-w-[80%]', 'break-words', 'shadow');
+                    botMessageDiv.classList.add('bot-message', 'text-gray-100', 'p-3', 'rounded-lg', 'max-w-[80%]', 'break-words', 'shadow');
                     messageContainer.appendChild(botMessageDiv);
                     chatMessages.appendChild(messageContainer);
                 }
@@ -98,6 +144,7 @@ async function sendMessage() {
 
         // Una vez que el streaming ha terminado, añadir la respuesta completa del asistente al historial
         history.push({ role: "assistant", content: assistantReply });
+        await saveHistory();
 
     } catch (error) {
         console.error("Error al llamar a la API de Gemini:", error);
@@ -134,3 +181,29 @@ messageInput.addEventListener('keypress', (e) => {
 
 // Ajustar la altura inicial del textarea (en caso de contenido preexistente)
 messageInput.style.height = (messageInput.scrollHeight) + 'px';
+
+newChatButton.addEventListener('click', async () => {
+    history = history.filter(m => m.role === 'system');
+    chatMessages.innerHTML = '';
+    messageInput.value = '';
+    if (typeof puter.auth.isSignedIn === 'function' && puter.auth.isSignedIn()) {
+        await puter.kv.del('chatHistory');
+    }
+});
+
+loginButton.addEventListener('click', async () => {
+    if (!puter.auth.isSignedIn()) {
+        await puter.auth.signIn();
+    }
+    const user = await puter.auth.getUser();
+    console.log('Usuario:', user);
+    updateLoginState();
+    await loadHistory();
+});
+
+document.addEventListener('DOMContentLoaded', async () => {
+    if (puter.auth.isSignedIn && puter.auth.isSignedIn()) {
+        await loadHistory();
+    }
+    updateLoginState();
+});
