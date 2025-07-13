@@ -23,14 +23,14 @@ function addMessageToUI(text, sender = 'user') {
     if (sender === 'user') {
         messageDiv.classList.add('justify-end');
         messageDiv.innerHTML = `
-            <div class="bg-blue-600 text-white p-3 rounded-lg max-w-[80%] break-words shadow">
+            <div class="user-message text-gray-100 p-3 rounded-lg max-w-[80%] break-words shadow">
                 ${text}
             </div>
         `;
     } else { // sender === 'bot'
         messageDiv.classList.add('justify-start');
         messageDiv.innerHTML = `
-            <div class="bg-gray-700 text-gray-100 p-3 rounded-lg max-w-[80%] break-words shadow">
+            <div class="bot-message text-gray-100 p-3 rounded-lg max-w-[80%] break-words shadow">
                 ${text}
             </div>
         `;
