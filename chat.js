@@ -1,10 +1,13 @@
-import { chatMessages, messageInput, sendButton } from './ui.js';
+import { chatMessages, messageInput, sendButton, introScreen } from './ui.js';
 import { history, saveHistory } from './history.js';
 import { addMessageToUI } from './ui.js';
 
 export async function sendMessage() {
     const userMessage = messageInput.value.trim();
     if (userMessage === '') return;
+
+    introScreen.classList.add('hidden');
+    chatMessages.classList.remove('hidden');
 
     addMessageToUI(userMessage, 'user');
     messageInput.value = '';
