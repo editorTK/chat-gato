@@ -3,6 +3,8 @@ export const messageInput = document.getElementById('message-input');
 export const sendButton = document.getElementById('send-button');
 export const newChatButton = document.getElementById('new-chat');
 export const loginButton = document.getElementById('login-button');
+export const introScreen = document.getElementById('intro-screen');
+export const suggestionsContainer = document.getElementById('suggestions');
 
 export function addMessageToUI(text, sender = 'user') {
     const messageDiv = document.createElement('div');
