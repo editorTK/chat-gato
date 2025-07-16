@@ -9,7 +9,7 @@
     <style>
         body {
             font-family: 'Roboto', sans-serif;
-            background-color: #000; /* fondo principal negro */
+            background-color: #333; /* fondo principal ahora gris */
             color: #e5e7eb; /* texto claro */
         }
         .chat-container {
@@ -43,11 +43,11 @@
         }
     </style>
 </head>
-<body class="bg-black text-gray-100 flex items-center justify-center min-h-screen">
+<body class="bg-gray-800 text-gray-100 min-h-screen">
     <button id="new-chat" class="absolute top-4 left-4 bg-white text-black px-4 py-2 rounded shadow hover:bg-gray-200 font-medium">Nuevo chat</button>
     <button id="login-button" class="absolute top-4 right-4 bg-white text-black px-4 py-2 rounded shadow hover:bg-gray-200 font-medium">Iniciar sesión</button>
 
-    <div class="flex flex-col w-full max-w-md chat-container rounded-lg shadow-lg overflow-hidden h-[90vh]">
+    <div class="flex flex-col w-full h-screen chat-container overflow-hidden">
 
         <div id="intro-screen" class="flex-1 flex flex-col items-center justify-center text-center p-4 hidden">
             <h1 class="text-2xl font-bold mb-4">¿En qué puedo ayudarte?</h1>
