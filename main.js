@@ -27,7 +27,7 @@ function populateSuggestions() {
     for (const text of shuffled) {
         const btn = document.createElement('button');
         btn.textContent = text;
-        btn.className = 'bg-gray-700 text-gray-100 px-4 py-2 rounded-full hover:bg-gray-600 transition';
+        btn.className = 'bg-gray-700 text-gray-100 px-4 py-2 rounded-full shadow hover:bg-gray-600 transition w-full max-w-xs';
         btn.addEventListener('click', () => {
             messageInput.value = text;
             hideIntro();
