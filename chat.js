@@ -53,7 +53,7 @@ export async function sendMessage() {
         await saveHistory();
 
     } catch (error) {
-        console.error('Error al llamar a la API de Gemini:', error);
+        console.error('Error al llamar a la IA:', error);
         addMessageToUI('Lo siento, hubo un error al obtener la respuesta. Por favor, inténtalo de nuevo más tarde.', 'bot');
     } finally {
         messageInput.disabled = false;
