@@ -1,5 +1,5 @@
 import { chatMessages, messageInput, sendButton, introScreen } from './ui.js';
-import { history, saveHistory } from './history.js';
+import { history, saveHistory, updateCurrentChatTitle, chatList } from './history.js';
 import { addMessageToUI } from './ui.js';
 
 export async function sendMessage() {
@@ -14,6 +14,9 @@ export async function sendMessage() {
 
     history.push({ role: 'user', content: userMessage });
     await saveHistory();
+    if (chatList.length > 0 && chatList[0].title === 'Nuevo chat') {
+        updateCurrentChatTitle(userMessage.substring(0, 30));
+    }
 
     messageInput.disabled = true;
     sendButton.disabled = true;

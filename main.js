@@ -1,5 +1,5 @@
-import { chatMessages, messageInput, sendButton, newChatButton, loginButton, introScreen, suggestionsContainer, addMessageToUI } from './ui.js';
-import { history, loadHistory } from './history.js';
+import { chatMessages, messageInput, sendButton, menuButton, sidebar, sidebarNewChat, loginButton, chatList as chatListUI, introScreen, suggestionsContainer, addMessageToUI } from './ui.js';
+import { history, chatList, loadHistory, loadChatList, createNewChat, deleteChat, updateCurrentChatTitle } from './history.js';
 import { sendMessage } from './chat.js';
 import { updateLoginState } from './auth.js';
 
@@ -48,6 +48,38 @@ function hideIntro() {
     chatMessages.classList.remove('hidden');
 }
 
+function renderChatList() {
+    chatListUI.innerHTML = '';
+    for (const chat of chatList) {
+        const li = document.createElement('li');
+        li.className = 'flex items-center justify-between bg-gray-800 px-3 py-2 rounded';
+        const openBtn = document.createElement('button');
+        openBtn.className = 'flex-1 text-left';
+        openBtn.textContent = chat.title;
+        openBtn.addEventListener('click', async () => {
+            chatMessages.innerHTML = '';
+            await loadHistory(chat.id);
+            for (const msg of history) {
+                if (msg.role === 'user') addMessageToUI(msg.content, 'user');
+                if (msg.role === 'assistant') addMessageToUI(msg.content, 'bot');
+            }
+            hideIntro();
+            sidebar.classList.add('translate-x-full');
+        });
+        const delBtn = document.createElement('button');
+        delBtn.textContent = '🗑';
+        delBtn.className = 'ml-2 text-red-500';
+        delBtn.addEventListener('click', async (e) => {
+            e.stopPropagation();
+            await deleteChat(chat.id);
+            renderChatList();
+        });
+        li.appendChild(openBtn);
+        li.appendChild(delBtn);
+        chatListUI.appendChild(li);
+    }
+}
+
 sendButton.addEventListener('click', sendMessage);
 
 messageInput.addEventListener('keypress', (e) => {
@@ -61,13 +93,16 @@ messageInput.addEventListener('keypress', (e) => {
 
 messageInput.style.height = messageInput.scrollHeight + 'px';
 
-newChatButton.addEventListener('click', async () => {
-    const systemOnly = history.filter(m => m.role === 'system');
-    history.length = 0;
-    history.push(...systemOnly);
+menuButton.addEventListener('click', () => {
+    sidebar.classList.toggle('translate-x-full');
+});
+
+sidebarNewChat.addEventListener('click', async () => {
+    await createNewChat();
     chatMessages.innerHTML = '';
-    await puter.kv.del('chatHistory');
+    renderChatList();
     showIntro();
+    sidebar.classList.add('translate-x-full');
 });
 
 loginButton.addEventListener('click', async () => {
@@ -76,7 +111,12 @@ loginButton.addEventListener('click', async () => {
 });
 
 document.addEventListener('DOMContentLoaded', async () => {
-    await loadHistory();
+    await loadChatList();
+    if (chatList.length === 0) {
+        await createNewChat();
+    }
+    await loadHistory(chatList[0].id);
+    renderChatList();
     if (history.length > 1) {
         hideIntro();
         for (const msg of history) {
