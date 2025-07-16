@@ -24,7 +24,7 @@ export async function sendMessage() {
 
     try {
         const stream = await puter.ai.chat(history, {
-            model: 'google/gemini-2.5-flash-preview',
+            model: 'gpt-4o',
             stream: true,
             temperature: 0.7
         });
