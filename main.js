@@ -1,4 +1,4 @@
-import { chatMessages, messageInput, sendButton, menuButton, sidebar, sidebarNewChat, loginButton, chatList as chatListUI, introScreen, suggestionsContainer, addMessageToUI } from './ui.js';
+import { chatMessages, messageInput, sendButton, menuButton, sidebar, sidebarNewChat, loginButton, chatList as chatListUI, introScreen, suggestionsContainer, overlay, addMessageToUI } from './ui.js';
 import { history, chatList, loadHistory, loadChatList, createNewChat, deleteChat, updateCurrentChatTitle } from './history.js';
 import { sendMessage } from './chat.js';
 import { updateLoginState } from './auth.js';
@@ -27,7 +27,7 @@ function populateSuggestions() {
     for (const text of shuffled) {
         const btn = document.createElement('button');
         btn.textContent = text;
-        btn.className = 'bg-gray-700 text-gray-100 px-4 py-2 rounded-full shadow hover:bg-gray-600 transition w-full max-w-xs';
+        btn.className = 'bg-black text-gray-100 px-4 py-2 rounded-full shadow hover:bg-gray-700 transition w-full max-w-xs';
         btn.addEventListener('click', () => {
             messageInput.value = text;
             hideIntro();
@@ -65,6 +65,7 @@ function renderChatList() {
             }
             hideIntro();
             sidebar.classList.add('translate-x-full');
+            overlay.classList.add('hidden');
         });
         const delBtn = document.createElement('button');
         delBtn.textContent = '🗑';
@@ -94,7 +95,13 @@ messageInput.addEventListener('keypress', (e) => {
 messageInput.style.height = messageInput.scrollHeight + 'px';
 
 menuButton.addEventListener('click', () => {
-    sidebar.classList.toggle('translate-x-full');
+    const isOpen = !sidebar.classList.toggle('translate-x-full');
+    overlay.classList.toggle('hidden', !isOpen);
+});
+
+overlay.addEventListener('click', () => {
+    sidebar.classList.add('translate-x-full');
+    overlay.classList.add('hidden');
 });
 
 sidebarNewChat.addEventListener('click', async () => {
@@ -103,6 +110,7 @@ sidebarNewChat.addEventListener('click', async () => {
     renderChatList();
     showIntro();
     sidebar.classList.add('translate-x-full');
+    overlay.classList.add('hidden');
 });
 
 loginButton.addEventListener('click', async () => {
