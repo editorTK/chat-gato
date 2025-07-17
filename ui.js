@@ -8,6 +8,7 @@ export const loginButton = document.getElementById('login-button');
 export const chatList = document.getElementById('chat-list');
 export const introScreen = document.getElementById('intro-screen');
 export const suggestionsContainer = document.getElementById('suggestions');
+export const overlay = document.getElementById('overlay');
 
 export function addMessageToUI(text, sender = 'user') {
     const messageDiv = document.createElement('div');
