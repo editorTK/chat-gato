@@ -1,16 +1,19 @@
-import { chatMessages, messageInput, sendButton, introScreen } from './ui.js';
+import { chatMessages, messageInput, sendButton, introScreen, showMessageMenu, addMessageToUI } from './ui.js';
 import { history, saveHistory, updateCurrentChatTitle, chatList } from './history.js';
-import { addMessageToUI } from './ui.js';
 
-export async function sendMessage() {
-    const userMessage = messageInput.value.trim();
+export async function sendMessage(forcedText) {
+    const userMessage = (forcedText !== undefined ? forcedText : messageInput.value).trim();
     if (userMessage === '') return;
 
     introScreen.classList.add('hidden');
     chatMessages.classList.remove('hidden');
 
-    addMessageToUI(userMessage, 'user');
-    messageInput.value = '';
+    const userBubble = addMessageToUI(userMessage, 'user');
+    userBubble.dataset.message = userMessage;
+    userBubble.addEventListener('click', (e) => showMessageMenu(e, 'user', userBubble));
+    if (forcedText === undefined) {
+        messageInput.value = '';
+    }
 
     history.push({ role: 'user', content: userMessage });
     await saveHistory();
@@ -33,6 +36,7 @@ export async function sendMessage() {
         });
 
         let botMessageDiv;
+        let textContainer;
         let assistantReply = '';
 
         for await (const part of stream) {
@@ -41,13 +45,23 @@ export async function sendMessage() {
                     const messageContainer = document.createElement('div');
                     messageContainer.classList.add('flex', 'mb-2', 'justify-start');
                     botMessageDiv = document.createElement('div');
-                    botMessageDiv.classList.add('bot-message', 'text-gray-100', 'p-3', 'rounded-lg', 'max-w-[80%]', 'break-words', 'shadow');
+                    botMessageDiv.classList.add('bot-message', 'text-gray-100', 'p-3', 'rounded-lg', 'max-w-[80%]', 'break-words', 'shadow', 'relative', 'pl-10');
+                    botMessageDiv.dataset.userMessage = userMessage;
+                    const img = document.createElement('img');
+                    img.src = 'foto_perfil.png';
+                    img.alt = 'perfil';
+                    img.className = 'w-8 h-8 rounded-full absolute -top-3 -left-3';
+                    botMessageDiv.appendChild(img);
+                    textContainer = document.createElement('div');
+                    botMessageDiv.appendChild(textContainer);
                     messageContainer.appendChild(botMessageDiv);
                     chatMessages.appendChild(messageContainer);
+                    botMessageDiv.addEventListener('click', (e) => showMessageMenu(e, 'bot', botMessageDiv));
                 }
 
                 assistantReply += part.text;
-                botMessageDiv.innerHTML = assistantReply.replaceAll('\n', '<br>');
+                botMessageDiv.dataset.message = assistantReply;
+                textContainer.innerHTML = assistantReply.replaceAll('\n', '<br>');
                 chatMessages.scrollTop = chatMessages.scrollHeight;
             }
         }
@@ -68,4 +82,24 @@ export async function sendMessage() {
         messageInput.style.height = 'auto';
         messageInput.style.height = messageInput.scrollHeight + 'px';
     }
+}
+
+export async function regenerateResponse(userMsg, assistantText, bubble) {
+    const container = bubble.parentElement;
+    const userContainer = container.previousElementSibling;
+    if (userContainer && userContainer.querySelector('.user-message')) {
+        userContainer.remove();
+    }
+    container.remove();
+
+    for (let i = history.length - 1; i >= 1; i--) {
+        if (history[i].role === 'assistant' && history[i].content === assistantText &&
+            history[i - 1]?.role === 'user' && history[i - 1].content === userMsg) {
+            history.splice(i - 1, 2);
+            break;
+        }
+    }
+    await saveHistory();
+
+    await sendMessage(userMsg);
 }

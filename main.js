@@ -1,6 +1,6 @@
-import { chatMessages, messageInput, sendButton, menuButton, sidebar, sidebarNewChat, loginButton, chatList as chatListUI, introScreen, suggestionsContainer, overlay, addMessageToUI } from './ui.js';
+import { chatMessages, messageInput, sendButton, menuButton, sidebar, sidebarNewChat, loginButton, chatList as chatListUI, introScreen, suggestionsContainer, overlay, addMessageToUI, showMessageMenu } from './ui.js';
 import { history, chatList, loadHistory, loadChatList, createNewChat, deleteChat, updateCurrentChatTitle } from './history.js';
-import { sendMessage } from './chat.js';
+import { sendMessage, regenerateResponse } from './chat.js';
 import { updateLoginState } from './auth.js';
 
 const suggestions = [
@@ -59,9 +59,16 @@ function renderChatList() {
         openBtn.addEventListener('click', async () => {
             chatMessages.innerHTML = '';
             await loadHistory(chat.id);
-            for (const msg of history) {
-                if (msg.role === 'user') addMessageToUI(msg.content, 'user');
-                if (msg.role === 'assistant') addMessageToUI(msg.content, 'bot');
+            for (let i = 0; i < history.length; i++) {
+                const msg = history[i];
+                if (msg.role === 'system') continue;
+                const sender = msg.role === 'assistant' ? 'bot' : 'user';
+                const bubble = addMessageToUI(msg.content, sender);
+                bubble.dataset.message = msg.content;
+                if (sender === 'bot') {
+                    bubble.dataset.userMessage = history[i - 1]?.content || '';
+                }
+                bubble.addEventListener('click', (e) => showMessageMenu(e, sender, bubble));
             }
             hideIntro();
             sidebar.classList.add('translate-x-full');
@@ -127,12 +134,20 @@ document.addEventListener('DOMContentLoaded', async () => {
     renderChatList();
     if (history.length > 1) {
         hideIntro();
-        for (const msg of history) {
-            if (msg.role === 'user') addMessageToUI(msg.content, 'user');
-            if (msg.role === 'assistant') addMessageToUI(msg.content, 'bot');
+        for (let i = 0; i < history.length; i++) {
+            const msg = history[i];
+            if (msg.role === 'system') continue;
+            const sender = msg.role === 'assistant' ? 'bot' : 'user';
+            const bubble = addMessageToUI(msg.content, sender);
+            bubble.dataset.message = msg.content;
+            if (sender === 'bot') {
+                bubble.dataset.userMessage = history[i - 1]?.content || '';
+            }
+            bubble.addEventListener('click', (e) => showMessageMenu(e, sender, bubble));
         }
     } else {
         showIntro();
     }
     updateLoginState();
+    window.regenerate = regenerateResponse;
 });

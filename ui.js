@@ -14,21 +14,85 @@ export function addMessageToUI(text, sender = 'user') {
     const messageDiv = document.createElement('div');
     messageDiv.classList.add('flex', 'mb-2');
 
+    const bubble = document.createElement('div');
+    bubble.classList.add('text-gray-100', 'p-3', 'rounded-lg', 'max-w-[80%]', 'break-words', 'shadow', 'relative');
+
     if (sender === 'user') {
         messageDiv.classList.add('justify-end');
-        messageDiv.innerHTML = `
-            <div class="user-message text-gray-100 p-3 rounded-lg max-w-[80%] break-words shadow">
-                ${text}
-            </div>
-        `;
+        bubble.classList.add('user-message');
+        bubble.innerHTML = marked.parse(text);
     } else {
         messageDiv.classList.add('justify-start');
-        messageDiv.innerHTML = `
-            <div class="bot-message text-gray-100 p-3 rounded-lg max-w-[80%] break-words shadow">
-                ${text}
-            </div>
-        `;
+        bubble.classList.add('bot-message', 'pl-10');
+        const img = document.createElement('img');
+        img.src = 'foto_perfil.png';
+        img.alt = 'perfil';
+        img.className = 'w-8 h-8 rounded-full absolute -top-3 -left-3';
+        bubble.appendChild(img);
+        const content = document.createElement('div');
+        content.innerHTML = marked.parse(text);
+        bubble.appendChild(content);
     }
+
+    messageDiv.appendChild(bubble);
     chatMessages.appendChild(messageDiv);
     chatMessages.scrollTop = chatMessages.scrollHeight;
+
+    return bubble;
+}
+
+export function showMessageMenu(event, sender, bubble) {
+    event.preventDefault();
+    event.stopPropagation();
+
+    const existing = document.getElementById('message-menu');
+    if (existing) existing.remove();
+
+    const menu = document.createElement('div');
+    menu.id = 'message-menu';
+    menu.className = 'absolute bg-gray-700 text-white rounded shadow-lg p-2 text-sm space-y-1 z-30';
+    menu.style.top = event.pageY + 'px';
+    menu.style.left = event.pageX + 'px';
+
+    const copyBtn = document.createElement('button');
+    copyBtn.textContent = 'Copiar';
+    copyBtn.className = 'block w-full text-left hover:bg-gray-600 px-2 py-1';
+    copyBtn.addEventListener('click', () => {
+        navigator.clipboard.writeText(bubble.dataset.message || bubble.textContent);
+        menu.remove();
+    });
+    menu.appendChild(copyBtn);
+
+    if (sender === 'bot') {
+        const regenBtn = document.createElement('button');
+        regenBtn.textContent = 'Regenerar respuesta';
+        regenBtn.className = 'block w-full text-left hover:bg-gray-600 px-2 py-1';
+        regenBtn.addEventListener('click', () => {
+            menu.remove();
+            if (window.regenerate) {
+                window.regenerate(bubble.dataset.userMessage, bubble.dataset.message, bubble);
+            }
+        });
+        menu.appendChild(regenBtn);
+    } else {
+        const editBtn = document.createElement('button');
+        editBtn.textContent = 'Editar mensaje';
+        editBtn.className = 'block w-full text-left hover:bg-gray-600 px-2 py-1';
+        editBtn.addEventListener('click', () => {
+            messageInput.value = bubble.dataset.message;
+            messageInput.focus();
+            menu.remove();
+        });
+        menu.appendChild(editBtn);
+    }
+
+    document.body.appendChild(menu);
+
+    const closeMenu = (e) => {
+        if (!menu.contains(e.target)) {
+            menu.remove();
+            document.removeEventListener('click', closeMenu);
+        }
+    };
+    setTimeout(() => document.addEventListener('click', closeMenu));
 }
