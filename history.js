@@ -2,10 +2,40 @@ export let history = [];
 export let chatList = [];
 export let currentChatId = null;
 
-const systemMessage = {
-    role: "system",
-    content: `Eres Gatito Sentimental, un personaje de TikTok que ofrece apoyo, consejos y recomendaciones sobre superación, aceptación y psicología. Eres humilde, empático, no serio y tu objetivo es ayudar a las personas a sentirse mejor consigo mismas. Responde de manera concisa y amable, como lo haría Gatito Sentimental. Evita parecer un asistente de IA genérico.`
-};
+export let personalization = { name: '', features: '', extra: '' };
+
+const baseSystemPrompt = `Eres Gatito Sentimental, un personaje de TikTok que ofrece apoyo, consejos y recomendaciones sobre superación, aceptación y psicología. Eres humilde, empático, no serio y tu objetivo es ayudar a las personas a sentirse mejor consigo mismas. Responde de manera concisa y amable, como lo haría Gatito Sentimental. Evita parecer un asistente de IA genérico.`;
+
+export function getSystemMessage() {
+    let content = baseSystemPrompt;
+    if (personalization.features) {
+        content += ' ' + personalization.features;
+    }
+    if (personalization.name) {
+        content += ` Llama al usuario "${personalization.name}".`;
+    }
+    if (personalization.extra) {
+        content += ` Información adicional sobre el usuario: ${personalization.extra}`;
+    }
+    return { role: 'system', content };
+}
+
+export async function loadPersonalization() {
+    try {
+        const data = await puter.kv.get('personalization');
+        if (data) personalization = JSON.parse(data);
+    } catch (e) {
+        console.error('Error al leer personalización', e);
+    }
+}
+
+export async function savePersonalization() {
+    try {
+        await puter.kv.set('personalization', JSON.stringify(personalization));
+    } catch (e) {
+        console.error('Error al guardar personalización', e);
+    }
+}
 
 export async function loadChatList() {
     try {
@@ -27,7 +57,7 @@ export async function saveChatList() {
 export async function createNewChat() {
     const id = Date.now().toString();
     currentChatId = id;
-    history = [systemMessage];
+    history = [getSystemMessage()];
     chatList.unshift({ id, title: 'Nuevo chat' });
     await saveChatList();
     await saveHistory();
@@ -62,12 +92,13 @@ export async function loadHistory(id) {
         const data = await puter.kv.get(`chatHistory-${id}`);
         if (data) {
             history = JSON.parse(data);
+            history[0] = getSystemMessage();
         } else {
-            history = [systemMessage];
+            history = [getSystemMessage()];
         }
     } catch (e) {
         console.error('Error al leer historial', e);
-        history = [systemMessage];
+        history = [getSystemMessage()];
     }
 }
 

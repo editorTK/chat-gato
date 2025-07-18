@@ -1,5 +1,5 @@
-import { chatMessages, messageInput, sendButton, menuButton, sidebar, sidebarNewChat, loginButton, chatList as chatListUI, introScreen, suggestionsContainer, overlay, addMessageToUI, showMessageMenu } from './ui.js';
-import { history, chatList, loadHistory, loadChatList, createNewChat, deleteChat, updateCurrentChatTitle } from './history.js';
+import { chatMessages, messageInput, sendButton, sidebar, sidebarNewChat, loginButton, personalizeButton, personalizationModal, personalName, personalFeatures, personalExtra, personalSave, personalCancel, chatList as chatListUI, introScreen, suggestionsContainer, overlay, addMessageToUI, showMessageMenu } from './ui.js';
+import { history, chatList, loadHistory, loadChatList, createNewChat, deleteChat, updateCurrentChatTitle, loadPersonalization, savePersonalization, personalization, getSystemMessage, saveHistory } from './history.js';
 import { sendMessage, regenerateResponse } from './chat.js';
 import { updateLoginState } from './auth.js';
 
@@ -71,8 +71,6 @@ function renderChatList() {
                 bubble.addEventListener('click', (e) => showMessageMenu(e, sender, bubble));
             }
             hideIntro();
-            sidebar.classList.add('translate-x-full');
-            overlay.classList.add('hidden');
         });
         const delBtn = document.createElement('button');
         delBtn.textContent = '🗑';
@@ -91,8 +89,11 @@ function renderChatList() {
 sendButton.addEventListener('click', sendMessage);
 
 function resizeInput() {
+    const maxHeight = 200;
     messageInput.style.height = 'auto';
-    messageInput.style.height = messageInput.scrollHeight + 'px';
+    const newHeight = Math.min(messageInput.scrollHeight, maxHeight);
+    messageInput.style.height = newHeight + 'px';
+    messageInput.style.overflowY = messageInput.scrollHeight > maxHeight ? 'auto' : 'hidden';
 }
 
 messageInput.addEventListener('keydown', (e) => {
@@ -110,13 +111,7 @@ messageInput.addEventListener('paste', (e) => {
 
 resizeInput();
 
-menuButton.addEventListener('click', () => {
-    const isOpen = !sidebar.classList.toggle('translate-x-full');
-    overlay.classList.toggle('hidden', !isOpen);
-});
-
 overlay.addEventListener('click', () => {
-    sidebar.classList.add('translate-x-full');
     const menu = document.getElementById('message-menu');
     if (menu) menu.remove();
     overlay.classList.add('hidden');
@@ -127,8 +122,6 @@ sidebarNewChat.addEventListener('click', async () => {
     chatMessages.innerHTML = '';
     renderChatList();
     showIntro();
-    sidebar.classList.add('translate-x-full');
-    overlay.classList.add('hidden');
 });
 
 loginButton.addEventListener('click', async () => {
@@ -136,7 +129,35 @@ loginButton.addEventListener('click', async () => {
     updateLoginState();
 });
 
+personalizeButton.addEventListener('click', () => {
+    personalName.value = personalization.name || '';
+    personalFeatures.value = personalization.features || '';
+    personalExtra.value = personalization.extra || '';
+    personalizationModal.classList.remove('hidden');
+});
+
+personalCancel.addEventListener('click', () => {
+    personalizationModal.classList.add('hidden');
+});
+
+personalizationModal.addEventListener('click', (e) => {
+    if (e.target === personalizationModal) {
+        personalizationModal.classList.add('hidden');
+    }
+});
+
+personalSave.addEventListener('click', async () => {
+    personalization.name = personalName.value.trim();
+    personalization.features = personalFeatures.value.trim();
+    personalization.extra = personalExtra.value.trim();
+    personalizationModal.classList.add('hidden');
+    await savePersonalization();
+    history[0] = getSystemMessage();
+    await saveHistory();
+});
+
 document.addEventListener('DOMContentLoaded', async () => {
+    await loadPersonalization();
     await loadChatList();
     if (chatList.length === 0) {
         await createNewChat();

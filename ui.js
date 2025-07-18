@@ -1,10 +1,16 @@
 export const chatMessages = document.getElementById('chat-messages');
 export const messageInput = document.getElementById('message-input');
 export const sendButton = document.getElementById('send-button');
-export const menuButton = document.getElementById('menu-button');
 export const sidebar = document.getElementById('sidebar');
 export const sidebarNewChat = document.getElementById('sidebar-new-chat');
 export const loginButton = document.getElementById('login-button');
+export const personalizeButton = document.getElementById('personalize-button');
+export const personalizationModal = document.getElementById('personalization-modal');
+export const personalName = document.getElementById('personal-name');
+export const personalFeatures = document.getElementById('personal-features');
+export const personalExtra = document.getElementById('personal-extra');
+export const personalSave = document.getElementById('personal-save');
+export const personalCancel = document.getElementById('personal-cancel');
 export const chatList = document.getElementById('chat-list');
 export const introScreen = document.getElementById('intro-screen');
 export const suggestionsContainer = document.getElementById('suggestions');
