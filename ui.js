@@ -27,7 +27,9 @@ export function addMessageToUI(text, sender = 'user') {
         const img = document.createElement('img');
         img.src = 'foto_perfil.png';
         img.alt = 'perfil';
-        img.className = 'w-8 h-8 rounded-full absolute -top-3 -left-3';
+        img.className = 'w-8 h-8 rounded-full absolute';
+        img.style.left = '-9px';
+        img.style.top = '-9px';
         bubble.appendChild(img);
         const content = document.createElement('div');
         content.innerHTML = marked.parse(text);
@@ -46,13 +48,22 @@ export function showMessageMenu(event, sender, bubble) {
     event.stopPropagation();
 
     const existing = document.getElementById('message-menu');
-    if (existing) existing.remove();
+    if (existing) {
+        existing.remove();
+        overlay.classList.add('hidden');
+        if (existing.dataset.for === bubble.dataset.message) {
+            return;
+        }
+    }
 
     const menu = document.createElement('div');
     menu.id = 'message-menu';
+    menu.dataset.for = bubble.dataset.message;
     menu.className = 'absolute bg-gray-700 text-white rounded shadow-lg p-2 text-sm space-y-1 z-30';
-    menu.style.top = event.pageY + 'px';
-    menu.style.left = event.pageX + 'px';
+    const rect = bubble.getBoundingClientRect();
+    menu.style.top = rect.bottom + window.scrollY + 'px';
+    menu.style.left = rect.left + window.scrollX + 'px';
+    overlay.classList.remove('hidden');
 
     const copyBtn = document.createElement('button');
     copyBtn.textContent = 'Copiar';
@@ -91,6 +102,7 @@ export function showMessageMenu(event, sender, bubble) {
     const closeMenu = (e) => {
         if (!menu.contains(e.target)) {
             menu.remove();
+            overlay.classList.add('hidden');
             document.removeEventListener('click', closeMenu);
         }
     };

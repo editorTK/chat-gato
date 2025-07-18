@@ -50,7 +50,9 @@ export async function sendMessage(forcedText) {
                     const img = document.createElement('img');
                     img.src = 'foto_perfil.png';
                     img.alt = 'perfil';
-                    img.className = 'w-8 h-8 rounded-full absolute -top-3 -left-3';
+                    img.className = 'w-8 h-8 rounded-full absolute';
+                    img.style.left = '-9px';
+                    img.style.top = '-9px';
                     botMessageDiv.appendChild(img);
                     textContainer = document.createElement('div');
                     botMessageDiv.appendChild(textContainer);
