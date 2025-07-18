@@ -1,5 +1,6 @@
 import { chatMessages, messageInput, sendButton, introScreen, showMessageMenu, addMessageToUI } from './ui.js';
-import { history, saveHistory, updateCurrentChatTitle, chatList } from './history.js';
+import { history, saveHistory, updateCurrentChatTitle, chatList, refreshSystemMessage } from './history.js';
+import { updateMemoryFromMessage, saveMemory } from './memory.js';
 
 export async function sendMessage(forcedText) {
     const userMessage = (forcedText !== undefined ? forcedText : messageInput.value).trim();
@@ -17,6 +18,12 @@ export async function sendMessage(forcedText) {
 
     history.push({ role: 'user', content: userMessage });
     await saveHistory();
+    const memUpdated = updateMemoryFromMessage(userMessage);
+    if (memUpdated) {
+        await saveMemory();
+        refreshSystemMessage();
+        await saveHistory();
+    }
     if (chatList.length > 0 && chatList[0].title === 'Nuevo chat') {
         updateCurrentChatTitle(userMessage.substring(0, 30));
     }

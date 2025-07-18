@@ -1,5 +1,6 @@
 import { chatMessages, messageInput, sendButton, menuButton, sidebar, sidebarNewChat, customizationButton, customizationModal, customNameInput, customTraitsInput, customExtraInput, customSaveButton, customCancelButton, chatList as chatListUI, introScreen, suggestionsContainer, overlay, addMessageToUI, showMessageMenu } from './ui.js';
-import { history, chatList, loadHistory, loadChatList, createNewChat, deleteChat, updateCurrentChatTitle, loadCustomization, saveCustomization, personalization } from './history.js';
+import { history, chatList, loadHistory, loadChatList, createNewChat, deleteChat, updateCurrentChatTitle, loadCustomization, saveCustomization, personalization, refreshSystemMessage } from './history.js';
+import { loadMemory } from './memory.js';
 import { sendMessage, regenerateResponse } from './chat.js';
 
 const suggestions = [
@@ -161,6 +162,8 @@ customSaveButton.addEventListener('click', async () => {
 
 document.addEventListener('DOMContentLoaded', async () => {
     await loadCustomization();
+    await loadMemory();
+    refreshSystemMessage();
     await loadChatList();
     if (chatList.length === 0) {
         await createNewChat();
