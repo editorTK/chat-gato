@@ -2,6 +2,7 @@ export let history = [];
 export let chatList = [];
 export let currentChatId = null;
 export let personalization = { name: '', traits: '', extra: '' };
+import { userMemory } from './memory.js';
 let systemMessage = buildSystemMessage();
 
 function buildSystemMessage() {
@@ -15,7 +16,23 @@ function buildSystemMessage() {
     if (personalization.extra) {
         content += ` Información adicional sobre el usuario: ${personalization.extra}.`;
     }
+    if (userMemory.name) {
+        content += ` El nombre del usuario es ${userMemory.name}.`;
+    }
+    if (userMemory.age) {
+        content += ` Tiene ${userMemory.age} años.`;
+    }
+    if (userMemory.interests.length > 0) {
+        content += ` Sus intereses incluyen: ${userMemory.interests.join(', ')}.`;
+    }
     return { role: 'system', content };
+}
+
+export function refreshSystemMessage() {
+    systemMessage = buildSystemMessage();
+    if (history.length > 0) {
+        history[0] = systemMessage;
+    }
 }
 
 export async function loadCustomization() {
@@ -25,14 +42,15 @@ export async function loadCustomization() {
     } catch (e) {
         console.error('Error al leer personalización', e);
     }
-    systemMessage = buildSystemMessage();
+    refreshSystemMessage();
 }
 
 export async function saveCustomization(data) {
     personalization = data;
-    systemMessage = buildSystemMessage();
+    refreshSystemMessage();
     try {
         await puter.kv.set('customization', JSON.stringify(personalization));
+        await saveHistory();
     } catch (e) {
         console.error('Error al guardar personalización', e);
     }
@@ -58,7 +76,7 @@ export async function saveChatList() {
 export async function createNewChat() {
     const id = Date.now().toString();
     currentChatId = id;
-    systemMessage = buildSystemMessage();
+    refreshSystemMessage();
     history = [systemMessage];
     chatList.unshift({ id, title: 'Nuevo chat' });
     await saveChatList();
@@ -103,6 +121,7 @@ export async function loadHistory(id) {
         systemMessage = buildSystemMessage();
         history = [systemMessage];
     }
+    refreshSystemMessage();
 }
 
 export function updateCurrentChatTitle(title) {
