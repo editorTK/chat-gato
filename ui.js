@@ -10,6 +10,8 @@ export const introScreen = document.getElementById('intro-screen');
 export const suggestionsContainer = document.getElementById('suggestions');
 export const overlay = document.getElementById('overlay');
 
+let openMenuBubble = null;
+
 export function addMessageToUI(text, sender = 'user') {
     const messageDiv = document.createElement('div');
     messageDiv.classList.add('flex', 'mb-2');
@@ -28,8 +30,8 @@ export function addMessageToUI(text, sender = 'user') {
         img.src = 'foto_perfil.png';
         img.alt = 'perfil';
         img.className = 'w-8 h-8 rounded-full absolute';
-        img.style.left = '-9px';
-        img.style.top = '-9px';
+        img.style.left = '-6px';
+        img.style.top = '-6px';
         bubble.appendChild(img);
         const content = document.createElement('div');
         content.innerHTML = marked.parse(text);
@@ -51,18 +53,17 @@ export function showMessageMenu(event, sender, bubble) {
     if (existing) {
         existing.remove();
         overlay.classList.add('hidden');
-        if (existing.dataset.for === bubble.dataset.message) {
+        if (openMenuBubble === bubble) {
+            openMenuBubble = null;
             return;
         }
     }
 
+    openMenuBubble = bubble;
+
     const menu = document.createElement('div');
     menu.id = 'message-menu';
-    menu.dataset.for = bubble.dataset.message;
-    menu.className = 'absolute bg-gray-700 text-white rounded shadow-lg p-2 text-sm space-y-1 z-30';
-    const rect = bubble.getBoundingClientRect();
-    menu.style.top = rect.bottom + window.scrollY + 'px';
-    menu.style.left = rect.left + window.scrollX + 'px';
+    menu.className = 'fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-gray-700 text-white rounded shadow-lg p-4 text-sm space-y-2 z-30';
     overlay.classList.remove('hidden');
 
     const copyBtn = document.createElement('button');
@@ -103,6 +104,7 @@ export function showMessageMenu(event, sender, bubble) {
         if (!menu.contains(e.target)) {
             menu.remove();
             overlay.classList.add('hidden');
+            openMenuBubble = null;
             document.removeEventListener('click', closeMenu);
         }
     };
