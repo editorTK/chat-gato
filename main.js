@@ -95,15 +95,18 @@ function resizeInput() {
     messageInput.style.height = messageInput.scrollHeight + 'px';
 }
 
-messageInput.addEventListener('keypress', (e) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
+messageInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
         e.preventDefault();
         sendMessage();
     }
 });
 
 messageInput.addEventListener('input', resizeInput);
-messageInput.addEventListener('paste', () => setTimeout(resizeInput));
+messageInput.addEventListener('paste', (e) => {
+    e.stopPropagation();
+    setTimeout(resizeInput);
+});
 
 resizeInput();
 
