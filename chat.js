@@ -81,8 +81,11 @@ export async function sendMessage(forcedText) {
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
                                 </svg>`;
         messageInput.focus();
+        const max = 200;
         messageInput.style.height = 'auto';
-        messageInput.style.height = messageInput.scrollHeight + 'px';
+        const newHeight = Math.min(messageInput.scrollHeight, max);
+        messageInput.style.height = newHeight + 'px';
+        messageInput.style.overflowY = messageInput.scrollHeight > max ? 'auto' : 'hidden';
     }
 }
 

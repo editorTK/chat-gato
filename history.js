@@ -1,11 +1,42 @@
 export let history = [];
 export let chatList = [];
 export let currentChatId = null;
+export let personalization = { name: '', traits: '', extra: '' };
+let systemMessage = buildSystemMessage();
 
-const systemMessage = {
-    role: "system",
-    content: `Eres Gatito Sentimental, un personaje de TikTok que ofrece apoyo, consejos y recomendaciones sobre superación, aceptación y psicología. Eres humilde, empático, no serio y tu objetivo es ayudar a las personas a sentirse mejor consigo mismas. Responde de manera concisa y amable, como lo haría Gatito Sentimental. Evita parecer un asistente de IA genérico.`
-};
+function buildSystemMessage() {
+    let content = `Eres Gatito Sentimental, un personaje de TikTok que ofrece apoyo, consejos y recomendaciones sobre superación, aceptación y psicología. Eres humilde, empático, no serio y tu objetivo es ayudar a las personas a sentirse mejor consigo mismas. Responde de manera concisa y amable, como lo haría Gatito Sentimental. Evita parecer un asistente de IA genérico.`;
+    if (personalization.name) {
+        content += ` El usuario prefiere que lo llames "${personalization.name}".`;
+    }
+    if (personalization.traits) {
+        content += ` Gatito Sentimental debe tener estas características: ${personalization.traits}.`;
+    }
+    if (personalization.extra) {
+        content += ` Información adicional sobre el usuario: ${personalization.extra}.`;
+    }
+    return { role: 'system', content };
+}
+
+export async function loadCustomization() {
+    try {
+        const data = await puter.kv.get('customization');
+        if (data) personalization = JSON.parse(data);
+    } catch (e) {
+        console.error('Error al leer personalización', e);
+    }
+    systemMessage = buildSystemMessage();
+}
+
+export async function saveCustomization(data) {
+    personalization = data;
+    systemMessage = buildSystemMessage();
+    try {
+        await puter.kv.set('customization', JSON.stringify(personalization));
+    } catch (e) {
+        console.error('Error al guardar personalización', e);
+    }
+}
 
 export async function loadChatList() {
     try {
@@ -27,6 +58,7 @@ export async function saveChatList() {
 export async function createNewChat() {
     const id = Date.now().toString();
     currentChatId = id;
+    systemMessage = buildSystemMessage();
     history = [systemMessage];
     chatList.unshift({ id, title: 'Nuevo chat' });
     await saveChatList();
@@ -63,10 +95,12 @@ export async function loadHistory(id) {
         if (data) {
             history = JSON.parse(data);
         } else {
+            systemMessage = buildSystemMessage();
             history = [systemMessage];
         }
     } catch (e) {
         console.error('Error al leer historial', e);
+        systemMessage = buildSystemMessage();
         history = [systemMessage];
     }
 }
