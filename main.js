@@ -1,7 +1,6 @@
-import { chatMessages, messageInput, sendButton, menuButton, sidebar, sidebarNewChat, loginButton, chatList as chatListUI, introScreen, suggestionsContainer, overlay, addMessageToUI, showMessageMenu } from './ui.js';
-import { history, chatList, loadHistory, loadChatList, createNewChat, deleteChat, updateCurrentChatTitle } from './history.js';
+import { chatMessages, messageInput, sendButton, menuButton, sidebar, sidebarNewChat, customizationButton, customizationModal, customNameInput, customTraitsInput, customExtraInput, customSaveButton, customCancelButton, chatList as chatListUI, introScreen, suggestionsContainer, overlay, addMessageToUI, showMessageMenu } from './ui.js';
+import { history, chatList, loadHistory, loadChatList, createNewChat, deleteChat, updateCurrentChatTitle, loadCustomization, saveCustomization, personalization } from './history.js';
 import { sendMessage, regenerateResponse } from './chat.js';
-import { updateLoginState } from './auth.js';
 
 const suggestions = [
     'Explica la ansiedad',
@@ -91,8 +90,11 @@ function renderChatList() {
 sendButton.addEventListener('click', sendMessage);
 
 function resizeInput() {
+    const max = 200;
     messageInput.style.height = 'auto';
-    messageInput.style.height = messageInput.scrollHeight + 'px';
+    const newHeight = Math.min(messageInput.scrollHeight, max);
+    messageInput.style.height = newHeight + 'px';
+    messageInput.style.overflowY = messageInput.scrollHeight > max ? 'auto' : 'hidden';
 }
 
 messageInput.addEventListener('keydown', (e) => {
@@ -119,6 +121,7 @@ overlay.addEventListener('click', () => {
     sidebar.classList.add('translate-x-full');
     const menu = document.getElementById('message-menu');
     if (menu) menu.remove();
+    customizationModal.classList.add('hidden');
     overlay.classList.add('hidden');
 });
 
@@ -131,12 +134,33 @@ sidebarNewChat.addEventListener('click', async () => {
     overlay.classList.add('hidden');
 });
 
-loginButton.addEventListener('click', async () => {
-    await puter.auth.login();
-    updateLoginState();
+customizationButton.addEventListener('click', async () => {
+    await loadCustomization();
+    customNameInput.value = personalization.name || '';
+    customTraitsInput.value = personalization.traits || '';
+    customExtraInput.value = personalization.extra || '';
+    customizationModal.classList.remove('hidden');
+    sidebar.classList.add('translate-x-full');
+    overlay.classList.remove('hidden');
+});
+
+customCancelButton.addEventListener('click', () => {
+    customizationModal.classList.add('hidden');
+    overlay.classList.add('hidden');
+});
+
+customSaveButton.addEventListener('click', async () => {
+    await saveCustomization({
+        name: customNameInput.value.trim(),
+        traits: customTraitsInput.value.trim(),
+        extra: customExtraInput.value.trim()
+    });
+    customizationModal.classList.add('hidden');
+    overlay.classList.add('hidden');
 });
 
 document.addEventListener('DOMContentLoaded', async () => {
+    await loadCustomization();
     await loadChatList();
     if (chatList.length === 0) {
         await createNewChat();
@@ -159,6 +183,5 @@ document.addEventListener('DOMContentLoaded', async () => {
     } else {
         showIntro();
     }
-    updateLoginState();
     window.regenerate = regenerateResponse;
 });
