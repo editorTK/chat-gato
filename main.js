@@ -90,16 +90,22 @@ function renderChatList() {
 
 sendButton.addEventListener('click', sendMessage);
 
+function resizeInput() {
+    messageInput.style.height = 'auto';
+    messageInput.style.height = messageInput.scrollHeight + 'px';
+}
+
 messageInput.addEventListener('keypress', (e) => {
     if (e.key === 'Enter' && !e.shiftKey) {
         e.preventDefault();
         sendMessage();
     }
-    messageInput.style.height = 'auto';
-    messageInput.style.height = messageInput.scrollHeight + 'px';
 });
 
-messageInput.style.height = messageInput.scrollHeight + 'px';
+messageInput.addEventListener('input', resizeInput);
+messageInput.addEventListener('paste', () => setTimeout(resizeInput));
+
+resizeInput();
 
 menuButton.addEventListener('click', () => {
     const isOpen = !sidebar.classList.toggle('translate-x-full');
@@ -108,6 +114,8 @@ menuButton.addEventListener('click', () => {
 
 overlay.addEventListener('click', () => {
     sidebar.classList.add('translate-x-full');
+    const menu = document.getElementById('message-menu');
+    if (menu) menu.remove();
     overlay.classList.add('hidden');
 });
 
