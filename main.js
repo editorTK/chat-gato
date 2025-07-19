@@ -52,9 +52,9 @@ function renderChatList() {
     chatListUI.innerHTML = '';
     for (const chat of chatList) {
         const li = document.createElement('li');
-        li.className = 'flex items-center justify-between bg-gray-800 px-3 py-2 rounded';
+        li.className = 'flex items-center justify-between bg-[#121212] px-3 py-2 rounded';
         const openBtn = document.createElement('button');
-        openBtn.className = 'flex-1 text-left';
+        openBtn.className = 'flex-1 text-left text-[#FAFAFA]';
         openBtn.textContent = chat.title;
         openBtn.addEventListener('click', async () => {
             chatMessages.innerHTML = '';
@@ -75,8 +75,8 @@ function renderChatList() {
             overlay.classList.add('hidden');
         });
         const delBtn = document.createElement('button');
-        delBtn.textContent = '🗑';
-        delBtn.className = 'ml-2 text-red-500';
+        delBtn.innerHTML = '<svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="#FAFAFA" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6v12a2 2 0 002 2h4a2 2 0 002-2V6"/><path d="M10 10v6M14 10v6"/><path d="M9 6V4h6v2"/></svg>';
+        delBtn.className = 'ml-2';
         delBtn.addEventListener('click', async (e) => {
             e.stopPropagation();
             await deleteChat(chat.id);
