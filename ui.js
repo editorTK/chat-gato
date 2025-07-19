@@ -16,6 +16,16 @@ export const introScreen = document.getElementById('intro-screen');
 export const suggestionsContainer = document.getElementById('suggestions');
 export const overlay = document.getElementById('overlay');
 
+export function showOverlay() {
+    overlay.classList.remove('hidden');
+    document.body.classList.add('bg-gray-700');
+}
+
+export function hideOverlay() {
+    overlay.classList.add('hidden');
+    document.body.classList.remove('bg-gray-700');
+}
+
 let openMenuBubble = null;
 
 export function addMessageToUI(text, sender = 'user') {
@@ -58,7 +68,7 @@ export function showMessageMenu(event, sender, bubble) {
     const existing = document.getElementById('message-menu');
     if (existing) {
         existing.remove();
-        overlay.classList.add('hidden');
+        hideOverlay();
         if (openMenuBubble === bubble) {
             openMenuBubble = null;
             return;
@@ -70,7 +80,7 @@ export function showMessageMenu(event, sender, bubble) {
     const menu = document.createElement('div');
     menu.id = 'message-menu';
     menu.className = 'fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-gray-700 text-white rounded shadow-lg p-4 text-sm space-y-2 z-30';
-    overlay.classList.remove('hidden');
+    showOverlay();
 
     const copyBtn = document.createElement('button');
     copyBtn.textContent = 'Copiar';
@@ -109,7 +119,7 @@ export function showMessageMenu(event, sender, bubble) {
     const closeMenu = (e) => {
         if (!menu.contains(e.target)) {
             menu.remove();
-            overlay.classList.add('hidden');
+            hideOverlay();
             openMenuBubble = null;
             document.removeEventListener('click', closeMenu);
         }
