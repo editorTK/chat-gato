@@ -1,4 +1,4 @@
-import { chatMessages, messageInput, sendButton, menuButton, sidebar, sidebarNewChat, customizationButton, customizationModal, customNameInput, customTraitsInput, customExtraInput, customSaveButton, customCancelButton, chatList as chatListUI, introScreen, suggestionsContainer, overlay, addMessageToUI, showMessageMenu } from './ui.js';
+import { chatMessages, messageInput, sendButton, menuButton, sidebar, sidebarNewChat, customizationButton, customizationModal, customNameInput, customTraitsInput, customExtraInput, customSaveButton, customCancelButton, chatList as chatListUI, introScreen, suggestionsContainer, overlay, addMessageToUI, showMessageMenu, showOverlay, hideOverlay } from './ui.js';
 import { history, chatList, loadHistory, loadChatList, createNewChat, deleteChat, updateCurrentChatTitle, loadCustomization, saveCustomization, personalization, refreshSystemMessage } from './history.js';
 import { loadMemory } from './memory.js';
 import { sendMessage, regenerateResponse } from './chat.js';
@@ -27,7 +27,7 @@ function populateSuggestions() {
     for (const text of shuffled) {
         const btn = document.createElement('button');
         btn.textContent = text;
-        btn.className = 'bg-black text-gray-100 px-4 py-2 rounded-full shadow hover:bg-gray-700 transition w-full max-w-xs';
+        btn.className = 'bg-gray-700 text-gray-100 px-4 py-2 rounded-full shadow-lg hover:bg-gray-600 transition w-full max-w-xs';
         btn.addEventListener('click', () => {
             messageInput.value = text;
             hideIntro();
@@ -72,7 +72,7 @@ function renderChatList() {
             }
             hideIntro();
             sidebar.classList.add('translate-x-full');
-            overlay.classList.add('hidden');
+            hideOverlay();
         });
         const delBtn = document.createElement('button');
         delBtn.innerHTML = '<svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="#FAFAFA" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6v12a2 2 0 002 2h4a2 2 0 002-2V6"/><path d="M10 10v6M14 10v6"/><path d="M9 6V4h6v2"/></svg>';
@@ -115,7 +115,11 @@ resizeInput();
 
 menuButton.addEventListener('click', () => {
     const isOpen = !sidebar.classList.toggle('translate-x-full');
-    overlay.classList.toggle('hidden', !isOpen);
+    if (isOpen) {
+        showOverlay();
+    } else {
+        hideOverlay();
+    }
 });
 
 overlay.addEventListener('click', () => {
@@ -123,7 +127,7 @@ overlay.addEventListener('click', () => {
     const menu = document.getElementById('message-menu');
     if (menu) menu.remove();
     customizationModal.classList.add('hidden');
-    overlay.classList.add('hidden');
+    hideOverlay();
 });
 
 sidebarNewChat.addEventListener('click', async () => {
@@ -132,7 +136,7 @@ sidebarNewChat.addEventListener('click', async () => {
     renderChatList();
     showIntro();
     sidebar.classList.add('translate-x-full');
-    overlay.classList.add('hidden');
+    hideOverlay();
 });
 
 customizationButton.addEventListener('click', async () => {
@@ -142,12 +146,12 @@ customizationButton.addEventListener('click', async () => {
     customExtraInput.value = personalization.extra || '';
     customizationModal.classList.remove('hidden');
     sidebar.classList.add('translate-x-full');
-    overlay.classList.remove('hidden');
+    showOverlay();
 });
 
 customCancelButton.addEventListener('click', () => {
     customizationModal.classList.add('hidden');
-    overlay.classList.add('hidden');
+    hideOverlay();
 });
 
 customSaveButton.addEventListener('click', async () => {
@@ -157,7 +161,7 @@ customSaveButton.addEventListener('click', async () => {
         extra: customExtraInput.value.trim()
     });
     customizationModal.classList.add('hidden');
-    overlay.classList.add('hidden');
+    hideOverlay();
 });
 
 document.addEventListener('DOMContentLoaded', async () => {
