@@ -1,6 +1,7 @@
 export let history = [];
 export let chatList = [];
 export let currentChatId = null;
+export let pendingChat = false;
 export let personalization = { name: '', traits: '', extra: '' };
 import { userMemory } from './memory.js';
 let systemMessage = buildSystemMessage();
@@ -78,10 +79,16 @@ export async function createNewChat() {
     currentChatId = id;
     refreshSystemMessage();
     history = [systemMessage];
-    chatList.unshift({ id, title: 'Nuevo chat' });
-    await saveChatList();
-    await saveHistory();
+    pendingChat = true;
     return id;
+}
+
+export async function ensureChatEntry(title) {
+    if (pendingChat) {
+        chatList.unshift({ id: currentChatId, title });
+        pendingChat = false;
+        await saveChatList();
+    }
 }
 
 export async function deleteChat(id) {

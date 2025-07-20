@@ -1,6 +1,7 @@
 import { loginButton } from './ui.js';
 
 export async function updateLoginState() {
+    if (!loginButton) return;
     try {
         const possibleFn = puter?.auth?.user;
         const user = typeof possibleFn === 'function' ? await possibleFn() : possibleFn;
