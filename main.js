@@ -1,7 +1,8 @@
-import { chatMessages, messageInput, sendButton, menuButton, sidebar, sidebarNewChat, customizationButton, customizationModal, customNameInput, customTraitsInput, customExtraInput, customSaveButton, customCancelButton, chatList as chatListUI, introScreen, suggestionsContainer, overlay, addMessageToUI, showMessageMenu, showOverlay, hideOverlay } from './ui.js';
+import { chatMessages, messageInput, sendButton, menuButton, loginButton, sidebar, sidebarNewChat, customizationButton, customizationModal, customNameInput, customTraitsInput, customExtraInput, customSaveButton, customCancelButton, chatList as chatListUI, introScreen, suggestionsContainer, overlay, addMessageToUI, showMessageMenu, showOverlay, hideOverlay } from './ui.js';
 import { history, chatList, loadHistory, loadChatList, createNewChat, deleteChat, updateCurrentChatTitle, loadCustomization, saveCustomization, personalization, refreshSystemMessage } from './history.js';
 import { loadMemory } from './memory.js';
 import { sendMessage, regenerateResponse } from './chat.js';
+import { updateLoginState } from './auth.js';
 
 const suggestions = [
     'Explica la ansiedad',
@@ -165,6 +166,7 @@ customSaveButton.addEventListener('click', async () => {
 });
 
 document.addEventListener('DOMContentLoaded', async () => {
+    await updateLoginState();
     await loadCustomization();
     await loadMemory();
     refreshSystemMessage();
