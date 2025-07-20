@@ -47,8 +47,8 @@ export function addMessageToUI(text, sender = 'user') {
         img.src = 'foto_perfil.png';
         img.alt = 'perfil';
         img.className = 'w-8 h-8 rounded-full absolute';
-        img.style.left = '-6px';
-        img.style.top = '-6px';
+        img.style.left = '-2px';
+        img.style.top = '-2px';
         bubble.appendChild(img);
         const content = document.createElement('div');
         content.innerHTML = marked.parse(text);

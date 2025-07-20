@@ -1,5 +1,5 @@
 import { chatMessages, messageInput, sendButton, introScreen, showMessageMenu, addMessageToUI } from './ui.js';
-import { history, saveHistory, updateCurrentChatTitle, chatList, refreshSystemMessage } from './history.js';
+import { history, saveHistory, updateCurrentChatTitle, chatList, refreshSystemMessage, ensureChatEntry } from './history.js';
 import { updateMemoryFromMessage, saveMemory } from './memory.js';
 
 export async function sendMessage(forcedText) {
@@ -17,6 +17,7 @@ export async function sendMessage(forcedText) {
     }
 
     history.push({ role: 'user', content: userMessage });
+    await ensureChatEntry(userMessage.substring(0, 30));
     await saveHistory();
     const memUpdated = updateMemoryFromMessage(userMessage);
     if (memUpdated) {
@@ -24,7 +25,8 @@ export async function sendMessage(forcedText) {
         refreshSystemMessage();
         await saveHistory();
     }
-    if (chatList.length > 0 && chatList[0].title === 'Nuevo chat') {
+    const firstChat = chatList.find(c => c.id === currentChatId);
+    if (firstChat && firstChat.title === 'Nuevo chat') {
         updateCurrentChatTitle(userMessage.substring(0, 30));
     }
 
@@ -58,8 +60,8 @@ export async function sendMessage(forcedText) {
                     img.src = 'foto_perfil.png';
                     img.alt = 'perfil';
                     img.className = 'w-8 h-8 rounded-full absolute';
-                    img.style.left = '-6px';
-                    img.style.top = '-6px';
+                    img.style.left = '-2px';
+                    img.style.top = '-2px';
                     botMessageDiv.appendChild(img);
                     textContainer = document.createElement('div');
                     botMessageDiv.appendChild(textContainer);

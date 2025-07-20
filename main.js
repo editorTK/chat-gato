@@ -1,4 +1,4 @@
-import { chatMessages, messageInput, sendButton, menuButton, loginButton, sidebar, sidebarNewChat, customizationButton, customizationModal, customNameInput, customTraitsInput, customExtraInput, customSaveButton, customCancelButton, chatList as chatListUI, introScreen, suggestionsContainer, overlay, addMessageToUI, showMessageMenu, showOverlay, hideOverlay } from './ui.js';
+import { chatMessages, messageInput, sendButton, menuButton, sidebar, sidebarNewChat, customizationButton, customizationModal, customNameInput, customTraitsInput, customExtraInput, customSaveButton, customCancelButton, chatList as chatListUI, introScreen, suggestionsContainer, overlay, addMessageToUI, showMessageMenu, showOverlay, hideOverlay } from './ui.js';
 import { history, chatList, loadHistory, loadChatList, createNewChat, deleteChat, updateCurrentChatTitle, loadCustomization, saveCustomization, personalization, refreshSystemMessage } from './history.js';
 import { loadMemory } from './memory.js';
 import { sendMessage, regenerateResponse } from './chat.js';
@@ -171,10 +171,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     await loadMemory();
     refreshSystemMessage();
     await loadChatList();
-    if (chatList.length === 0) {
+    if (chatList.length > 0) {
+        await loadHistory(chatList[0].id);
+    } else {
         await createNewChat();
     }
-    await loadHistory(chatList[0].id);
     renderChatList();
     if (history.length > 1) {
         hideIntro();
