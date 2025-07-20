@@ -2,6 +2,7 @@ export const chatMessages = document.getElementById('chat-messages');
 export const messageInput = document.getElementById('message-input');
 export const sendButton = document.getElementById('send-button');
 export const menuButton = document.getElementById('menu-button');
+export const loginButton = document.getElementById('login-button');
 export const sidebar = document.getElementById('sidebar');
 export const sidebarNewChat = document.getElementById('sidebar-new-chat');
 export const customizationButton = document.getElementById('customization-button');
