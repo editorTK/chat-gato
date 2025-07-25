@@ -1,47 +1,81 @@
-export let userMemory = { name: '', age: '', interests: [] };
+let dbPromise;
+export let userMemory = {};
+let memoryEntries = [];
+
+function openDB() {
+    if (dbPromise) return dbPromise;
+    dbPromise = new Promise((resolve, reject) => {
+        const req = indexedDB.open('userMemoryDB', 1);
+        req.onupgradeneeded = (e) => {
+            e.target.result.createObjectStore('entries', { keyPath: 'id' });
+        };
+        req.onsuccess = () => resolve(req.result);
+        req.onerror = () => reject(req.error);
+    });
+    return dbPromise;
+}
+
+function txDone(tx) {
+    return new Promise((resolve, reject) => {
+        tx.oncomplete = () => resolve();
+        tx.onerror = () => reject(tx.error);
+        tx.onabort = () => reject(tx.error);
+    });
+}
 
 export async function loadMemory() {
-    try {
-        const data = await puter.kv.get('userMemory');
-        if (data) userMemory = JSON.parse(data);
-    } catch (e) {
-        console.error('Error al cargar memoria', e);
+    const db = await openDB();
+    const tx = db.transaction('entries', 'readonly');
+    const store = tx.objectStore('entries');
+    const req = store.getAll();
+    const entries = await new Promise((res, rej) => {
+        req.onsuccess = () => res(req.result || []);
+        req.onerror = () => rej(req.error);
+    });
+    memoryEntries = entries;
+    rebuildUserMemory();
+    await txDone(tx);
+}
+
+function rebuildUserMemory() {
+    userMemory = {};
+    for (const entry of memoryEntries) {
+        userMemory[entry.key] = entry.value;
     }
 }
 
-export async function saveMemory() {
-    try {
-        await puter.kv.set('userMemory', JSON.stringify(userMemory));
-    } catch (e) {
-        console.error('Error al guardar memoria', e);
-    }
+export function getMemoryEntries() {
+    return memoryEntries.slice();
 }
 
-export function updateMemoryFromMessage(message) {
+async function addEntry(key, value, source) {
+    const db = await openDB();
+    const entry = { id: Date.now() + Math.random(), key, value, source, timestamp: Date.now() };
+    const tx = db.transaction('entries', 'readwrite');
+    const store = tx.objectStore('entries');
+    store.put(entry);
+    await txDone(tx);
+    memoryEntries.push(entry);
+    userMemory[key] = value;
+}
+
+export async function deleteMemoryEntry(id) {
+    const db = await openDB();
+    const tx = db.transaction('entries', 'readwrite');
+    const store = tx.objectStore('entries');
+    store.delete(id);
+    await txDone(tx);
+    memoryEntries = memoryEntries.filter(e => e.id !== id);
+    rebuildUserMemory();
+}
+
+export async function updateMemoryFromJson(obj, source) {
     let updated = false;
-    const nameMatch = message.match(/(?:me llamo|mi nombre es|soy)\s+([\p{L}]+(?:\s+[\p{L}]+)?)/iu);
-    if (nameMatch && !userMemory.name) {
-        userMemory.name = nameMatch[1].trim();
-        updated = true;
-    }
-
-    const ageMatch = message.match(/(\d{1,3})\s*a(?:ñ|n)os?/iu);
-    if (ageMatch && !userMemory.age) {
-        userMemory.age = ageMatch[1];
-        updated = true;
-    }
-
-    const interestMatch = message.match(/(?:me interes(?:a|an)|me gusta(?:n)?|mis intereses son|estoy interesado en)\s+([^.!?]+)/i);
-    if (interestMatch) {
-        const interests = interestMatch[1]
-            .split(/,| y /i)
-            .map(s => s.trim())
-            .filter(Boolean);
-        for (const it of interests) {
-            if (!userMemory.interests.includes(it)) {
-                userMemory.interests.push(it);
-                updated = true;
-            }
+    for (const key of Object.keys(obj)) {
+        const value = obj[key];
+        if (userMemory[key] !== value) {
+            await addEntry(key, value, source);
+            updated = true;
         }
     }
     return updated;

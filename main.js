@@ -1,6 +1,6 @@
-import { chatMessages, messageInput, sendButton, menuButton, sidebar, sidebarNewChat, customizationButton, customizationModal, customNameInput, customTraitsInput, customExtraInput, customSaveButton, customCancelButton, chatList as chatListUI, introScreen, suggestionsContainer, overlay, addMessageToUI, showMessageMenu, showOverlay, hideOverlay } from './ui.js';
+import { chatMessages, messageInput, sendButton, menuButton, sidebar, sidebarNewChat, customizationButton, customizationModal, customNameInput, customTraitsInput, customExtraInput, customSaveButton, customCancelButton, chatList as chatListUI, introScreen, suggestionsContainer, overlay, addMessageToUI, showMessageMenu, showOverlay, hideOverlay, memoryButton, memoryModal, memoryList, memoryCloseButton } from './ui.js';
 import { history, chatList, loadHistory, loadChatList, createNewChat, deleteChat, updateCurrentChatTitle, loadCustomization, saveCustomization, personalization, refreshSystemMessage } from './history.js';
-import { loadMemory } from './memory.js';
+import { loadMemory, getMemoryEntries, deleteMemoryEntry } from './memory.js';
 import { sendMessage, regenerateResponse } from './chat.js';
 import { updateLoginState } from './auth.js';
 
@@ -89,6 +89,34 @@ function renderChatList() {
     }
 }
 
+function renderMemoryList() {
+    memoryList.innerHTML = '';
+    const entries = getMemoryEntries();
+    if (entries.length === 0) {
+        const li = document.createElement('li');
+        li.textContent = 'No hay datos guardados.';
+        memoryList.appendChild(li);
+        return;
+    }
+    for (const entry of entries) {
+        const li = document.createElement('li');
+        li.className = 'flex justify-between items-start bg-gray-700 rounded p-2';
+        const info = document.createElement('div');
+        info.innerHTML = `<strong>${entry.key}:</strong> ${entry.value}<br><span class="text-xs text-gray-400">${new Date(entry.timestamp).toLocaleString()}</span><br><span class="text-xs text-gray-400">Fuente: ${entry.source}</span>`;
+        const delBtn = document.createElement('button');
+        delBtn.textContent = 'Eliminar';
+        delBtn.className = 'text-red-400 text-xs ml-2';
+        delBtn.addEventListener('click', async () => {
+            await deleteMemoryEntry(entry.id);
+            renderMemoryList();
+            refreshSystemMessage();
+        });
+        li.appendChild(info);
+        li.appendChild(delBtn);
+        memoryList.appendChild(li);
+    }
+}
+
 sendButton.addEventListener('click', sendMessage);
 
 function resizeInput() {
@@ -128,6 +156,7 @@ overlay.addEventListener('click', () => {
     const menu = document.getElementById('message-menu');
     if (menu) menu.remove();
     customizationModal.classList.add('hidden');
+    memoryModal.classList.add('hidden');
     hideOverlay();
 });
 
@@ -162,6 +191,18 @@ customSaveButton.addEventListener('click', async () => {
         extra: customExtraInput.value.trim()
     });
     customizationModal.classList.add('hidden');
+    hideOverlay();
+});
+
+memoryButton.addEventListener('click', () => {
+    renderMemoryList();
+    memoryModal.classList.remove('hidden');
+    sidebar.classList.add('translate-x-full');
+    showOverlay();
+});
+
+memoryCloseButton.addEventListener('click', () => {
+    memoryModal.classList.add('hidden');
     hideOverlay();
 });
 

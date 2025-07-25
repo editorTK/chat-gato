@@ -1,6 +1,6 @@
 import { chatMessages, messageInput, sendButton, introScreen, showMessageMenu, addMessageToUI } from './ui.js';
 import { history, saveHistory, updateCurrentChatTitle, chatList, refreshSystemMessage, ensureChatEntry } from './history.js';
-import { updateMemoryFromMessage, saveMemory } from './memory.js';
+import { updateMemoryFromJson } from './memory.js';
 
 export async function sendMessage(forcedText) {
     const userMessage = (forcedText !== undefined ? forcedText : messageInput.value).trim();
@@ -19,12 +19,6 @@ export async function sendMessage(forcedText) {
     history.push({ role: 'user', content: userMessage });
     await ensureChatEntry(userMessage.substring(0, 30));
     await saveHistory();
-    const memUpdated = updateMemoryFromMessage(userMessage);
-    if (memUpdated) {
-        await saveMemory();
-        refreshSystemMessage();
-        await saveHistory();
-    }
     const firstChat = chatList.find(c => c.id === currentChatId);
     if (firstChat && firstChat.title === 'Nuevo chat') {
         updateCurrentChatTitle(userMessage.substring(0, 30));
@@ -77,8 +71,26 @@ export async function sendMessage(forcedText) {
             }
         }
 
+        let memObj = null;
+        const memMatch = assistantReply.match(/\nMEMORIA:\s*({[\s\S]*})\s*$/i);
+        if (memMatch) {
+            try { memObj = JSON.parse(memMatch[1]); } catch { memObj = null; }
+            assistantReply = assistantReply.slice(0, memMatch.index).trim();
+            if (textContainer) {
+                textContainer.innerHTML = assistantReply.replaceAll('\n', '<br>');
+            }
+        }
+
         history.push({ role: 'assistant', content: assistantReply });
         await saveHistory();
+
+        if (memObj) {
+            const updated = await updateMemoryFromJson(memObj, userMessage);
+            if (updated) {
+                refreshSystemMessage();
+                await saveHistory();
+            }
+        }
 
     } catch (error) {
         console.error('Error al llamar a la IA:', error);
