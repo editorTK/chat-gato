@@ -1,5 +1,5 @@
 import { chatMessages, messageInput, sendButton, introScreen, showMessageMenu, addMessageToUI } from './ui.js';
-import { history, saveHistory, updateCurrentChatTitle, chatList, refreshSystemMessage, ensureChatEntry } from './history.js';
+import { history, saveHistory, updateCurrentChatTitle, chatList, refreshSystemMessage, ensureChatEntry, currentChatId } from './history.js';
 import { updateMemoryFromJson } from './memory.js';
 
 export async function sendMessage(forcedText) {
