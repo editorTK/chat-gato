@@ -79,6 +79,12 @@
                 </svg>
                 <span>Personalización</span>
             </button>
+            <button id="memory-button" class="flex items-center gap-2 w-full text-[#FAFAFA]">
+                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="#FAFAFA" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M4 4h16v16H4z" />
+                </svg>
+                <span>Memoria</span>
+            </button>
         </div>
         <ul id="chat-list" class="flex-1 overflow-y-auto p-4 space-y-2"></ul>
     </div>
@@ -102,6 +108,16 @@
             <div class="flex justify-end space-x-2">
                 <button id="custom-cancel" class="px-4 py-2 bg-[#FAFAFA] rounded">Cancelar</button>
                 <button id="custom-save" class="px-4 py-2 bg-[#FAFAFA] text-black rounded">Guardar</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="memory-modal" class="fixed inset-0 flex items-center justify-center z-30 hidden">
+        <div class="bg-[#121212] text-gray-100 p-6 rounded-lg space-y-4 w-11/12 max-w-md">
+            <h2 class="text-lg font-bold">Memoria guardada</h2>
+            <ul id="memory-list" class="space-y-2 text-sm max-h-64 overflow-y-auto"></ul>
+            <div class="flex justify-end">
+                <button id="memory-close" class="px-4 py-2 bg-[#FAFAFA] text-black rounded">Cerrar</button>
             </div>
         </div>
     </div>

@@ -26,6 +26,7 @@ function buildSystemMessage() {
     if (userMemory.interests.length > 0) {
         content += ` Sus intereses incluyen: ${userMemory.interests.join(', ')}.`;
     }
+    content += ' Despu\u00e9s de cada respuesta, si detectas datos nuevos o actualizados sobre el usuario (edad, intereses, ubicaci\u00f3n, etc.), escribe en una l\u00ednea aparte "MEMORIA:" seguido de un objeto JSON con esa informaci\u00f3n. No menciones este texto al usuario.';
     return { role: 'system', content };
 }
 
